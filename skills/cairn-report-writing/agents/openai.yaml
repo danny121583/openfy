@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cairn Report Writing"
+  short_description: "Write Cairn-compliant reports."
+  default_prompt: "Use $cairn-report-writing to write a Cairn-compliant report from the provided findings."

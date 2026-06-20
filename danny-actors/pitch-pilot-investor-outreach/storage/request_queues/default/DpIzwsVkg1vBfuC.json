@@ -1,0 +1,9 @@
+{
+	"id": "DpIzwsVkg1vBfuC",
+	"json": "{\"id\":\"DpIzwsVkg1vBfuC\",\"url\":\"https://www.rho.co/team\",\"loadedUrl\":\"https://www.rho.co/team\",\"uniqueKey\":\"https://www.rho.co/team\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:54:53.822Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.rho.co/team",
+	"url": "https://www.rho.co/team"
+}

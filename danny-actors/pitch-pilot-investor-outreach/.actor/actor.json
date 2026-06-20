@@ -1,0 +1,14 @@
+{
+    "actorSpecification": 1,
+    "name": "pitch-pilot-investor-outreach",
+    "title": "PitchPilot — Investor Finder & Cold Pitch Writer",
+    "description": "Scrapes investor websites, extracts investment criteria and portfolio synergy, and generates highly personalized cold pitch emails and proposals.",
+    "version": "0.1",
+    "buildTag": "latest",
+    "input": "./input_schema.json",
+    "dockerfile": "../Dockerfile",
+    "output": "./output_schema.json",
+    "storages": {
+        "dataset": "./dataset_schema.json"
+    }
+}

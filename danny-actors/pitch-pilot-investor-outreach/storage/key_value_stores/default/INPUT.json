@@ -1,0 +1,10 @@
+{
+  "projectPath": "/Users/danny/Desktop/health-erecords-app",
+  "emailTo": "apd1034@gmail.com",
+  "autoDiscover": true,
+  "fundingStage": "Seed",
+  "outreachChannel": "gmail-gog",
+  "gmailAccount": "apd1034@gmail.com",
+  "useCodexOAuth": false,
+  "preview": true
+}

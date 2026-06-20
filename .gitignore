@@ -1,0 +1,16 @@
+# Root gitignore for apify project
+**/node_modules
+**/.DS_Store
+**/.env
+**/.env.*
+!**/.env.example
+**/dist
+**/build
+**/out
+**/*.log
+
+# Creator Factory specific ignores
+creator-factory/generated-actors/*
+!creator-factory/generated-actors/.gitkeep
+creator-factory/reports/*
+!creator-factory/reports/.gitkeep

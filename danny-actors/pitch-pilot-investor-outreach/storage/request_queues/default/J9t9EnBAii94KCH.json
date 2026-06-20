@@ -1,0 +1,9 @@
+{
+	"id": "J9t9EnBAii94KCH",
+	"json": "{\"id\":\"J9t9EnBAii94KCH\",\"url\":\"https://outlander.vc/companies\",\"loadedUrl\":\"https://outlander.vc/companies\",\"uniqueKey\":\"https://outlander.vc/companies\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:54:55.068Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://outlander.vc/companies",
+	"url": "https://outlander.vc/companies"
+}

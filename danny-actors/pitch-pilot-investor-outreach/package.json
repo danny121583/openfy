@@ -1,0 +1,21 @@
+{
+  "name": "pitch-pilot-investor-outreach",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "preview-email": "node main.js --preview",
+    "test": "node test/smoke.test.js"
+  },
+  "dependencies": {
+    "apify": "^3.4.2",
+    "crawlee": "^3.14.1",
+    "openai": "^4.28.0",
+    "@whiskeysockets/baileys": "^6.6.0",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://apify-projects.github.io/actor-json-schemas/output.json?v=0.3",
+  "actorOutputSchemaVersion": 1,
+  "title": "PitchPilot Outreach Dataset Schema",
+  "description": "Output dataset containing investor research, contact information, and customized email pitch drafts.",
+  "properties": {
+    "results": {
+      "type": "string",
+      "title": "Results",
+      "description": "Link to output dataset items.",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    }
+  }
+}

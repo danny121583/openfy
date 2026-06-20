@@ -1,0 +1,9 @@
+{
+	"id": "HLiECFvIxEAnueJ",
+	"json": "{\"id\":\"HLiECFvIxEAnueJ\",\"url\":\"https://www.rho.co/companies\",\"loadedUrl\":\"https://www.rho.co/companies\",\"uniqueKey\":\"https://www.rho.co/companies\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:54:53.765Z\"}",
+	"method": "GET",
+	"orderNo": null,
+	"retryCount": 0,
+	"uniqueKey": "https://www.rho.co/companies",
+	"url": "https://www.rho.co/companies"
+}

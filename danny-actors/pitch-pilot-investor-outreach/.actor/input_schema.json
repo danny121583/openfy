@@ -1,0 +1,116 @@
+{
+    "title": "PitchPilot Input Schema",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "appName": {
+            "title": "Application Name",
+            "type": "string",
+            "description": "The name of the app or SaaS you want to pitch.",
+            "default": "Health eRecords",
+            "prefill": "Health eRecords",
+            "editor": "textfield"
+        },
+        "appDescription": {
+            "title": "Application Description",
+            "type": "string",
+            "description": "Describe what the app does, the problem it solves, and target audience.",
+            "default": "A HIPAA-compliant Electronic Health Records (EHR) platform for private medical practices. It automates patient intake, streamlines charting, integrates medical billing, and connects to labs via HL7 APIs, saving doctors 10+ hours of admin work per week.",
+            "prefill": "A HIPAA-compliant Electronic Health Records (EHR) platform for private medical practices. It automates patient intake, streamlines charting, integrates medical billing, and connects to labs via HL7 APIs, saving doctors 10+ hours of admin work per week.",
+            "editor": "textfield"
+        },
+        "targetNiche": {
+            "title": "Target Niche/Industry",
+            "type": "string",
+            "description": "E.g. HealthTech, B2B SaaS, FinTech, AI, EdTech.",
+            "default": "HealthTech",
+            "prefill": "HealthTech",
+            "editor": "textfield"
+        },
+        "fundingStage": {
+            "title": "Target Funding Stage",
+            "type": "string",
+            "description": "Your current target funding round.",
+            "enum": ["Pre-Seed", "Seed", "Series A", "Series B", "Grants/Accelerator"],
+            "default": "Seed",
+            "editor": "select"
+        },
+        "investorUrls": {
+            "title": "Target Investor URLs",
+            "type": "array",
+            "description": "Explicit venture capital website URLs or investor profiles to crawl.",
+            "editor": "requestListSources",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "title": "Investor Domain/URL",
+                        "type": "string",
+                        "description": "The URL of the investor website."
+                    }
+                }
+            },
+            "prefill": [
+                { "url": "https://www.character.vc" }
+            ]
+        },
+        "autoDiscover": {
+            "title": "Auto Discover Target Investors",
+            "type": "boolean",
+            "description": "Automatically search public directories for VCs that match your target niche if target URLs list is empty.",
+            "default": true,
+            "editor": "checkbox"
+        },
+        "openaiApiKey": {
+            "title": "OpenAI API Key (Optional)",
+            "type": "string",
+            "description": "Your OpenAI API Key for customized AI pitch generation. If omitted, a B2B fallback template engine will compile the email.",
+            "editor": "textfield",
+            "isSecret": true
+        },
+        "projectPath": {
+            "title": "Local Project Path",
+            "type": "string",
+            "description": "Path to the local project codebase to study.",
+            "default": "/Users/danny/Desktop/health-erecords-app",
+            "editor": "textfield"
+        },
+        "geminiApiKey": {
+            "title": "Gemini API Key (Optional)",
+            "type": "string",
+            "description": "Google Gemini API Key. Will fallback to env or target project .env if omitted.",
+            "editor": "textfield",
+            "isSecret": true
+        },
+        "emailTo": {
+            "title": "Outreach Recipient Email",
+            "type": "string",
+            "description": "The email address to send the generated pitch to.",
+            "default": "apd1034@gmail.com",
+            "editor": "textfield"
+        },
+        "outreachChannel": {
+            "title": "Outreach Channel",
+            "type": "string",
+            "description": "The channel to use for outreach delivery.",
+            "enum": ["gmail-gog", "whatsapp-baileys", "system-mail", "apify-mail"],
+            "default": "gmail-gog",
+            "editor": "select"
+        },
+        "gmailAccount": {
+            "title": "Gmail Account (for GOG)",
+            "type": "string",
+            "description": "The Gmail address associated with GOG to send from.",
+            "default": "apd1034@gmail.com",
+            "editor": "textfield"
+        },
+        "useCodexOAuth": {
+            "title": "Use OpenAI Codex OAuth",
+            "type": "boolean",
+            "description": "Initiate OpenAI Codex device-code OAuth flow for API commands.",
+            "default": false,
+            "editor": "checkbox"
+        }
+    },
+    "required": ["appName", "appDescription"]
+}

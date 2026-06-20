@@ -1,0 +1,47 @@
+{
+  "name": "apify-creator-factory",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Apify Creator Factory for generating, testing, polishing, and verified deploying monetizable Apify Actors.",
+  "workspaces": [
+    "apps/*",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,green \"npm run dev -w @creator-factory/api\" \"npm run dev -w @creator-factory/web\"",
+    "dev:api": "npm run dev -w @creator-factory/api",
+    "dev:web": "npm run dev -w @creator-factory/web",
+    "build": "npm run build -w @creator-factory/shared && npm run build -w @creator-factory/api && npm run build -w @creator-factory/web",
+    "typecheck": "npm run typecheck -w @creator-factory/shared && npm run build -w @creator-factory/shared && npm run typecheck -w @creator-factory/api && npm run typecheck -w @creator-factory/web",
+    "test": "npm run test -w @creator-factory/shared",
+    "main-agent": "tsx scripts/run-main-agent.ts",
+    "sync-store": "tsx scripts/sync-all-actors-store.ts",
+    "typecheck:main-agent": "tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --skipLibCheck --types node scripts/run-main-agent.ts src/main-agent/*.ts",
+    "mcp-start": "tsx src/mcp/local-mcp-server.ts",
+    "typecheck:mcp": "tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --skipLibCheck --types node src/mcp/local-mcp-server.ts",
+    "learn-feedback": "tsx scripts/learn-feedback.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^10.0.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "nanoid": "^5.1.5",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.2",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.2.1",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "apify-cli": "^1.6.2"
+  }
+}

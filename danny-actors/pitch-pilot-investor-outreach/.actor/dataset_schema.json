@@ -1,0 +1,82 @@
+{
+    "actorSpecification": 1,
+    "fields": {
+        "type": "object",
+        "properties": {
+            "investorName": {
+                "type": "string",
+                "title": "Investor Name",
+                "description": "The investor name field."
+            },
+            "website": {
+                "type": "string",
+                "title": "Website",
+                "description": "The website field."
+            },
+            "focusNiches": {
+                "type": "array",
+                "title": "Focus Niches",
+                "description": "The focus niches field."
+            },
+            "relevanceScore": {
+                "type": "integer",
+                "title": "Relevance Score",
+                "description": "The relevance score field."
+            },
+            "contactEmails": {
+                "type": "array",
+                "title": "Contact Emails",
+                "description": "The contact emails field."
+            },
+            "phoneNumbers": {
+                "type": "array",
+                "title": "Phone Numbers",
+                "description": "The phone numbers field."
+            },
+            "socialLinks": {
+                "type": "array",
+                "title": "Social Links",
+                "description": "The social links field."
+            },
+            "teamMembers": {
+                "type": "array",
+                "title": "Team Members",
+                "description": "The team members field."
+            },
+            "portfolioCompanies": {
+                "type": "array",
+                "title": "Portfolio Companies",
+                "description": "The portfolio companies field."
+            },
+            "personalizedSubjectLine": {
+                "type": "string",
+                "title": "Personalized Subject Line",
+                "description": "The personalized subject line field."
+            },
+            "personalizedPitchEmail": {
+                "type": "string",
+                "title": "Personalized Pitch Email",
+                "description": "The personalized pitch email field."
+            },
+            "personalizedProposal": {
+                "type": "string",
+                "title": "Personalized Proposal",
+                "description": "The personalized proposal field."
+            }
+        }
+    },
+    "views": {
+        "overview": {
+            "title": "Overview",
+            "transformation": {
+                "fields": [
+                    "investorName",
+                    "website",
+                    "focusNiches",
+                    "relevanceScore",
+                    "contactEmails"
+                ]
+            }
+        }
+    }
+}
