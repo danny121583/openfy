@@ -1,0 +1,28 @@
+{
+  "$schema": "./harness.config.schema.json",
+  "projectRoot": "..",
+  "adaptersDir": "./adapters",
+  "skillsDir": "./skills",
+  "memoryDir": "./memory",
+  "reportsDir": "./reports",
+  "safetyPolicyPath": "./config/safety-policy.json",
+  "defaultAdapter": "auto",
+  "adapterOverrides": {},
+  "reporting": {
+    "timestampFormat": "YYYY-MM-DD-HHmm",
+    "includeCommandOutput": true,
+    "maxCommandOutputLength": 5000
+  },
+  "memory": {
+    "maxLessonsRetained": 500,
+    "maxFailuresRetained": 200,
+    "deduplicateLessons": true
+  },
+  "dailyUpdate": {
+    "mode": "recommendation-only",
+    "checkOutdatedPackages": true,
+    "checkSecurityAdvisories": true,
+    "checkAdapterSpecificDocs": true,
+    "autoApplySafePatches": false
+  }
+}

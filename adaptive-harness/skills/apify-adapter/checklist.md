@@ -1,0 +1,16 @@
+# Apify Adapter Checklist
+- [ ] Actor directories detected
+- [ ] actor.json validated per actor
+- [ ] Input schemas validated (structure, editors, schemaVersion)
+- [ ] Output schemas validated (v1 format)
+- [ ] Apify SDK version checked
+- [ ] Crawlee usage verified (if applicable)
+- [ ] Proxy configuration checked
+- [ ] Dataset/KV Store/Request Queue usage verified
+- [ ] Icon existence checked (.actor/icon.png)
+- [ ] README completeness verified
+- [ ] Dockerfile existence checked
+- [ ] No secrets in source code
+- [ ] Schema validation command passed
+- [ ] Marketplace readiness assessed
+- [ ] No auto-publish or auto-pricing attempted

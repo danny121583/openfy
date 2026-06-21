@@ -1,0 +1,23 @@
+{
+  "name": "adaptive-harness",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Project-agnostic adaptive agent harness for repository analysis, workflow synthesis, self-healing, and reporting.",
+  "scripts": {
+    "harness:analyze": "tsx scripts/analyze-project.ts",
+    "harness:daily-update": "tsx scripts/daily-update.ts",
+    "harness:self-heal": "tsx scripts/self-heal.ts",
+    "harness:workflow": "tsx scripts/run-workflow.ts",
+    "harness:apify-review": "tsx scripts/apify-review.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1"
+  }
+}

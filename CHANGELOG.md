@@ -14,9 +14,11 @@ All notable changes to the Openfy suite will be documented in this file.
 - **creator-factory/PPE_MONETIZATION_GUIDE.md**: Pay-Per-Event cost modeling guide with a revenue calculator table, 4 pricing strategies, sync-store PPE configuration documentation, and FAQ.
 - **.github/ISSUE_TEMPLATE/bug_report.md**: GitHub bug report template with environment fields, log collection instructions, and `.env` safety guidance.
 - **.github/ISSUE_TEMPLATE/feature_request.md**: GitHub feature request template with problem statement, proposed solution, use case table, and implementation ideas sections.
+- **Agent Standardization**: Promoted all remaining reactive agent personas (8 in `creator-factory/agents`, 8 in `adaptive-harness/agents`, 3 in root `agents/`, and 1 in `open-source-push/agents`) to structured, autonomous **Real Agents** conforming to the `agentskills.io` standard.
 
 ### Changed
-- **README.md**: Added Supported Platforms section (macOS, Windows, Linux), CLI quick-reference table, License section with link to `LICENSE`, and links to all new documentation files.
+- **README.md**: Added Supported Platforms section, CLI quick-reference table, License section, links to new documentation files, and Agent Architecture overview.
+- **Gitignore Policies**: Refactored root `.gitignore` to track agent and skill source directories (`agents/`, `skills/`, `creator-factory/agents/`, `adaptive-harness/`, and `open-source-push/`) while ensuring local databases, reports, and run history remain untracked.
 
 ## [1.0.0] — 2026-06-20
 

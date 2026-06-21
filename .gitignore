@@ -16,18 +16,19 @@ creator-factory/reports/*
 !creator-factory/reports/.gitkeep
 
 # IDE Agent / Swarm Harness ignores
-/adaptive-harness/
-/agents/
-/skills/
+/agency-agents/
+/adaptive-harness/node_modules/
+/adaptive-harness/dist/
+/adaptive-harness/reports/
+/adaptive-harness/memory/
 /danny-actors/
 /generated-icons/
-/docs/
+docs/reports/
 /AGENTS.md
 /GEMINI.md
+/AGENT_AUDIT_apify_2026-06-21.md
 creator-factory/scratch/
 creator-factory/data/
-creator-factory/agents/
 creator-factory/AGENTS.md
 creator-factory/GEMINI.md
-/open-source-push/
 

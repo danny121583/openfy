@@ -1,0 +1,30 @@
+{
+  "defaultMode": "recommendation-only",
+  "allowAutoFix": true,
+  "allowAutoDependencyPatch": false,
+  "allowAutoMajorUpdates": false,
+  "requireApprovalFor": [
+    "auth",
+    "payments",
+    "database",
+    "migrations",
+    "security",
+    "deployment",
+    "env",
+    "secrets",
+    "pricing",
+    "publishing",
+    "destructive-file-ops"
+  ],
+  "neverAutoChange": [
+    ".env",
+    ".env.local",
+    ".env.production",
+    "secrets",
+    "credentials",
+    "payment logic",
+    "pricing logic",
+    "publishing configs",
+    "production deployment configs"
+  ]
+}

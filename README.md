@@ -19,16 +19,38 @@ Openfy is an open-source factory suite designed for building, testing, auditing,
 ├── creator-factory/       # Core factory for generating, testing, & syncing actors
 │   ├── src/               # Main logic, CLI scripts, and local MCP server
 │   ├── templates/         # Actor boilerplate templates (ts-beeai-agent, etc.)
+│   ├── agents/            # Real agents (actor-builder, deploy, docs, etc.) following standard structure
 │   └── package.json       # Dependencies & runner scripts
+├── adaptive-harness/      # Self-healing test harness executing autonomous agents (planner, verifier, etc.)
+├── agents/                # Root real agents (docs auditor, quality audit, cairn report writer)
+├── skills/                # Centralized, reusable skill packages for root agents (agentskills.io format)
 ├── open-source-push/      # Project-agnostic repository sanitization framework
-│   ├── README.md          # OSS-Push guides & best practices
-│   └── CHANGELOG.md       # OSS-Push version history
-├── .github/
-│   └── ISSUE_TEMPLATE/    # Bug report & feature request templates
+│   ├── agents/            # Sanitization and packaging agents
+│   └── skills/            # Cleaning and packaging skills
+├── docs/                  # System documentation & guidelines
 ├── LICENSE                # MIT License
 ├── README.md              # Root repository documentation (this file)
 └── CHANGELOG.md           # Repository-wide changelog
 ```
+
+---
+
+## 🤖 Agent Architecture & Standardization
+
+All agents and skills in this repository conform strictly to the [agentskills.io](https://agentskills.io) specification. Each agent is structured as an autonomous directory package:
+
+```
+agent-name/
+├── AGENT.md               # Global agent system prompt, definition, and personality
+└── skills/
+    └── skill-name/
+        ├── SKILL.md       # Skill triggers, input/output schemas, and safety policies
+        ├── scripts/
+        │   └── run.ts     # Executable TypeScript/Node logic (run via tsx/node)
+        └── references/    # Data schemas, validation models, or style templates
+```
+
+This structure ensures that agent capabilities are highly discoverable, portable, and cleanly decoupled from the orchestration loop.
 
 ---
 
