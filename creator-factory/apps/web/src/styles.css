@@ -193,12 +193,24 @@ label {
 select,
 input[type="url"],
 input[type="text"],
+input[type="password"],
 textarea {
   border: 1px solid #cbd4c6;
   border-radius: 6px;
   background: #ffffff;
   padding: 12px;
   width: 100%;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+select:focus,
+input[type="url"]:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  outline: 0;
+  border-color: #246b3d;
+  box-shadow: 0 0 0 3px rgba(36, 107, 61, 0.15);
 }
 
 textarea {
