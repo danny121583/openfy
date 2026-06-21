@@ -38,3 +38,5 @@ creator-factory/GEMINI.md
 
 # Nested repository workspace ignores
 /orbitai/
+/hermes-agent/
+/orbitos/
