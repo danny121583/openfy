@@ -611,10 +611,21 @@ async function pushActor(actor: ActorRunState, runDir: string) {
       await writeMarkdown(path.join(runDir, `${actor.idea.slug}-deploy-report.md`), deployReport(actor, "PUSHED_BUT_STORE_PUBLICATION_FAILED_MANUAL_REQUIRED", attempts + 1, actor.apifyActorUrl, "PASS"));
       await writeFinalActorReport(actor, "PASS", `Pushed to Apify successfully. Note: Store publication requires manual action. Error: ${publication.message}`);
       return;
-    }
     await writeMarkdown(path.join(actor.actorDir, "reports", "deploy-report.md"), deployReport(actor, "PUSHED", attempts + 1, actor.apifyActorUrl, "PASS"));
     await writeMarkdown(path.join(runDir, `${actor.idea.slug}-deploy-report.md`), deployReport(actor, "PUSHED", attempts + 1, actor.apifyActorUrl, "PASS"));
     await writeFinalActorReport(actor, "PASS", "Pushed to Apify and published to Store.");
+
+    // Trigger automated task publishing
+    console.log(`[main-agent] ${actor.idea.slug}: triggering task publication script...`);
+    try {
+      const { spawnSync } = await import("node:child_process");
+      spawnSync("npx", ["tsx", "scripts/publish-tasks.ts", `--slug=${actor.idea.slug}`], {
+        cwd: projectRoot,
+        stdio: "inherit"
+      });
+    } catch (err: any) {
+      console.error(`[main-agent] Failed to run task publication:`, err.message);
+    }
   } else {
     actor.status = "failed";
     actor.errors.push(last?.stderr || last?.stdout || "apify push failed");

@@ -139,6 +139,34 @@ Full reference: [creator-factory/CLI_REFERENCE.md](./creator-factory/CLI_REFEREN
 
 ---
 
+## 📢 Configuring Public Actor Tasks (SEO & AI Traffic)
+
+Actor Tasks are pre-configured inputs for your Actors. Publishing them creates public landing pages (visible on search engines and AI agents) that display specific use-case configurations for your Actor, driving discovery and monetization.
+
+### Automated Task Publication Script
+
+Openfy includes an automated task generator and publisher that creates up to 50 diverse task configurations per Actor (e.g., distinct locations, SaaS platforms, or target directories):
+
+1. **Configure credentials**: Add your Apify tokens to your environment or `creator-factory/.env`:
+   - `APIFY_TOKEN`: Required for task creation.
+   - `APIFY_UI_TOKEN` (Optional): Required for automatic publication. If not supplied, tasks are created privately on your account, and can be published manually via the Console UI.
+2. **Run the script**:
+   ```bash
+   cd creator-factory
+   # Run for all actors
+   npx tsx scripts/publish-tasks.ts --limit=50
+   
+   # Run for a specific actor slug
+   npx tsx scripts/publish-tasks.ts --slug="google-maps-lead-quality-agent" --limit=50
+   
+   # Re-generate and clean existing tasks first
+   npx tsx scripts/publish-tasks.ts --slug="google-maps-lead-quality-agent" --limit=50 --clean
+   ```
+
+*Note: In accordance with repository privacy standards, generated task specifications and credentials must reside in ignored files (e.g., under `danny-agents/` or local `.env`) and will not be pushed to GitHub.*
+
+---
+
 ## 🔒 Open Source Sanitization (OSS-Push)
 
 Before publishing forks or derivative work, use `open-source-push/` to audit and clean your files:

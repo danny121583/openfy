@@ -21,7 +21,7 @@ creator-factory/reports/*
 /adaptive-harness/dist/
 /adaptive-harness/reports/
 /adaptive-harness/memory/
-/danny-actors/
+/danny-agents/
 /generated-icons/
 docs/reports/
 /reports/
