@@ -1,9 +1,0 @@
-{
-	"id": "mDkTFdOYSQ7p1kz",
-	"json": "{\"id\":\"mDkTFdOYSQ7p1kz\",\"url\":\"https://outlander.vc/investments\",\"loadedUrl\":\"https://outlander.vc/investments\",\"uniqueKey\":\"https://outlander.vc/investments\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:54:55.346Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://outlander.vc/investments",
-	"url": "https://outlander.vc/investments"
-}

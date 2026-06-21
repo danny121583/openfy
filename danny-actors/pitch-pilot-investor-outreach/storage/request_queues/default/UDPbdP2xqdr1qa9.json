@@ -1,9 +1,0 @@
-{
-	"id": "UDPbdP2xqdr1qa9",
-	"json": "{\"id\":\"UDPbdP2xqdr1qa9\",\"url\":\"https://outlander.vc/portfolio\",\"loadedUrl\":\"https://outlander.vc/portfolio/\",\"uniqueKey\":\"https://outlander.vc/portfolio\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:54:55.278Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://outlander.vc/portfolio",
-	"url": "https://outlander.vc/portfolio"
-}

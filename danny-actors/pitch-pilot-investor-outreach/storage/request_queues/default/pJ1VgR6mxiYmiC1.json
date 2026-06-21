@@ -1,9 +1,0 @@
-{
-	"id": "pJ1VgR6mxiYmiC1",
-	"json": "{\"id\":\"pJ1VgR6mxiYmiC1\",\"url\":\"https://healthtechcapital.com/companies\",\"loadedUrl\":\"https://healthtechcapital.com/companies\",\"uniqueKey\":\"https://healthtechcapital.com/companies\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:55:03.992Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://healthtechcapital.com/companies",
-	"url": "https://healthtechcapital.com/companies"
-}

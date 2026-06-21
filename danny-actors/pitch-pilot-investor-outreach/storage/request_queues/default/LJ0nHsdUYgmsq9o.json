@@ -1,9 +1,0 @@
-{
-	"id": "LJ0nHsdUYgmsq9o",
-	"json": "{\"id\":\"LJ0nHsdUYgmsq9o\",\"url\":\"https://www.rho.co/investments\",\"loadedUrl\":\"https://www.rho.co/investments\",\"uniqueKey\":\"https://www.rho.co/investments\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:54:53.905Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://www.rho.co/investments",
-	"url": "https://www.rho.co/investments"
-}

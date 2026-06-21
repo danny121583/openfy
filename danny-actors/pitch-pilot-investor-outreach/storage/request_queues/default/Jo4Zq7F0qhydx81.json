@@ -1,9 +1,0 @@
-{
-	"id": "Jo4Zq7F0qhydx81",
-	"json": "{\"id\":\"Jo4Zq7F0qhydx81\",\"url\":\"https://outlander.vc/about\",\"loadedUrl\":\"https://outlander.vc/about/\",\"uniqueKey\":\"https://outlander.vc/about\",\"method\":\"GET\",\"noRetry\":false,\"retryCount\":0,\"errorMessages\":[],\"headers\":{},\"userData\":{\"__crawlee\":{\"state\":4}},\"handledAt\":\"2026-06-19T23:54:55.024Z\"}",
-	"method": "GET",
-	"orderNo": null,
-	"retryCount": 0,
-	"uniqueKey": "https://outlander.vc/about",
-	"url": "https://outlander.vc/about"
-}
