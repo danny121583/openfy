@@ -457,7 +457,7 @@ function App() {
             {successMsg && <div className="success">{successMsg}</div>}
             <div className="settings-form">
               <div className="form-group">
-                <label>APIFY_TOKEN</label>
+                <label>Apify Token</label>
                 <input
                   type="password"
                   value={apifyToken}
@@ -466,7 +466,7 @@ function App() {
                 />
               </div>
               <div className="form-group">
-                <label>GITHUB_TOKEN</label>
+                <label>Github Token</label>
                 <input
                   type="password"
                   value={githubToken}
@@ -475,7 +475,7 @@ function App() {
                 />
               </div>
               <div className="form-group">
-                <label>OPENAI_API_KEY</label>
+                <label>OpenAI API Key</label>
                 <input
                   type="password"
                   value={openaiKey}
@@ -484,7 +484,7 @@ function App() {
                 />
               </div>
               <div className="form-group">
-                <label>ANTHROPIC_API_KEY</label>
+                <label>Anthropic API Key</label>
                 <input
                   type="password"
                   value={anthropicKey}
