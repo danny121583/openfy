@@ -36,3 +36,6 @@ creator-factory/AGENTS.md
 creator-factory/GEMINI.md
 /scripts/git-push-danny.sh
 
+# Nested repository workspace ignores
+/orbitai/
+/hermes-agent/
