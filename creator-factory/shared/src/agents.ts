@@ -16,12 +16,79 @@ import {
   writeText
 } from "./utils.js";
 
-export function makeConcept(prompt: string, sourceType: SourceType) {
+async function queryLLM(systemPrompt: string, userPrompt: string): Promise<string> {
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+
+  if (!openaiKey && !anthropicKey) {
+    return "FALLBACK";
+  }
+
+  // Retry 1: OpenAI
+  if (openaiKey) {
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${openaiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          temperature: 0.1,
+          max_tokens: 1000
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json() as any;
+        return data.choices[0].message.content.trim();
+      }
+    } catch (err) {
+      console.warn("[shared-agents] OpenAI call failed, attempting fallback...", err);
+    }
+  }
+
+  // Retry 2: Anthropic Claude
+  if (anthropicKey) {
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": anthropicKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "claude-3-5-flash-20241022",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }]
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json() as any;
+        return data.content[0].text.trim();
+      }
+    } catch (err) {
+      console.warn("[shared-agents] Anthropic call failed.", err);
+    }
+  }
+
+  return "FALLBACK";
+}
+
+export async function makeConcept(prompt: string, sourceType: SourceType) {
   const lowered = prompt.toLowerCase();
   const category =
     monetizableCategories.find((item) => lowered.includes(item.toLowerCase().split(" ")[0])) ??
     "Workflow agents for business research";
-  return {
+  const fallback = {
     title: sanitizeActorName(prompt).replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()),
     category,
     targetUsers: ["growth teams", "operations teams", "data providers", "agencies"],
@@ -29,10 +96,42 @@ export function makeConcept(prompt: string, sourceType: SourceType) {
     monetizationAngle: `Package repeatable ${category.toLowerCase()} into a reliable Apify Actor with structured dataset output.`,
     sourceType
   };
+
+  const systemPrompt = `You are an expert Apify Actor strategist. Analyze the user's prompt/idea and categorize it for the Apify Store.
+Respond ONLY with a raw JSON object matching the following structure. Do NOT add markdown blocks or code formatting wrappers (e.g. do not write \`\`\`json). Just output the raw valid JSON:
+{
+  "title": "Memorable branded display name (e.g. LeadPilot — Google Maps Lead Quality Agent)",
+  "category": "One category from: SEO Tools, Lead Generation, E-commerce, Developer Tools, AI, Automation, Agents, Social Media, Jobs/Hiring, Data Enrichment",
+  "targetUsers": ["user type 1", "user type 2"],
+  "actorType": "scraper | API wrapper | workflow automation | AI agent",
+  "monetizationAngle": "Detailed explanation of why someone would pay for this actor."
+}`;
+
+  try {
+    const res = await queryLLM(systemPrompt, `Prompt: ${prompt}\nSource Type: ${sourceType}`);
+    if (res !== "FALLBACK") {
+      const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      if (parsed.title && parsed.category && parsed.actorType && parsed.monetizationAngle) {
+        return {
+          title: String(parsed.title),
+          category: String(parsed.category),
+          targetUsers: Array.isArray(parsed.targetUsers) ? parsed.targetUsers.map(String) : fallback.targetUsers,
+          actorType: String(parsed.actorType),
+          monetizationAngle: String(parsed.monetizationAngle),
+          sourceType
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[shared-agents] makeConcept LLM parse failed, using fallback.", err);
+  }
+
+  return fallback;
 }
 
-export function makeSpec(prompt: string) {
-  return {
+export async function makeSpec(prompt: string) {
+  const fallback = {
     steps: [
       "Validate input and normalize requested target fields.",
       "Execute the workflow with retry-aware network boundaries.",
@@ -56,15 +155,51 @@ export function makeSpec(prompt: string) {
     retryBehavior: "Retry transient network failures up to three times with exponential backoff.",
     prompt
   };
+
+  const systemPrompt = `You are a senior Apify Actor software architect. Design the technical execution specification for this Actor prompt.
+Respond ONLY with a raw JSON object matching the following structure. Do NOT add markdown blocks or code formatting wrappers (e.g. do not write \`\`\`json). Just output the raw valid JSON:
+{
+  "steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],
+  "inputSchema": {
+    "propertyName": "Brief description of the property's role in this actor"
+  },
+  "outputSchema": {
+    "fieldName": "Brief description of this field in the final dataset"
+  },
+  "failureCases": ["Potential failure reason 1", "Potential failure reason 2"],
+  "retryBehavior": "Detailed retry behavior description"
+}`;
+
+  try {
+    const res = await queryLLM(systemPrompt, `Prompt: ${prompt}`);
+    if (res !== "FALLBACK") {
+      const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      if (Array.isArray(parsed.steps) && parsed.inputSchema && parsed.outputSchema) {
+        return {
+          steps: parsed.steps.map(String),
+          inputSchema: parsed.inputSchema as Record<string, string>,
+          outputSchema: parsed.outputSchema as Record<string, string>,
+          failureCases: Array.isArray(parsed.failureCases) ? parsed.failureCases.map(String) : fallback.failureCases,
+          retryBehavior: String(parsed.retryBehavior || fallback.retryBehavior),
+          prompt
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[shared-agents] makeSpec LLM parse failed, using fallback.", err);
+  }
+
+  return fallback;
 }
 
-export function makeMonetization(concept: ReturnType<typeof makeConcept>) {
-  const score = concept.category.includes("Lead") || concept.category.includes("business") ? 86 : 74;
-  return {
+export async function makeMonetization(concept: Awaited<ReturnType<typeof makeConcept>>) {
+  const score = concept.category.toLowerCase().includes("lead") || concept.category.toLowerCase().includes("business") ? 86 : 74;
+  const fallback = {
     score,
     markdown: `# Monetization Report
 ## Target Users
-${concept.targetUsers.map((user) => `- ${user}`).join("\n")}
+${concept.targetUsers.map((user: string) => `- ${user}`).join("\n")}
 ## Problem Solved
 Turns a repeatable ${concept.category.toLowerCase()} workflow into dataset output that buyers can run on demand.
 ## Why This Actor Should Make Money
@@ -87,6 +222,31 @@ ${concept.category}, Apify Actor, automation, dataset, lead generation, scraping
 - AI enrichment
 `
   };
+
+  const systemPrompt = `You are an expert SaaS and Apify Store monetization consultant. Write a monetization report for this actor concept.
+Respond ONLY with a raw JSON object matching the following structure. Do NOT add markdown blocks or code formatting wrappers (e.g. do not write \`\`\`json). Just output the raw valid JSON:
+{
+  "score": 85, // Number between 0 and 100 reflecting the monetization potential based on category, target users, and concept
+  "markdown": "# Monetization Report\\n\\nDetailed Markdown content with sections: Target Users, Problem Solved, Why This Actor Should Make Money, Suggested Actor Title, Marketplace Description, Pricing Recommendation, SEO Keywords, Related Actors To Build, Upsell Opportunities"
+}`;
+
+  try {
+    const res = await queryLLM(systemPrompt, `Concept: ${JSON.stringify(concept)}`);
+    if (res !== "FALLBACK") {
+      const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      if (typeof parsed.score === "number" && parsed.markdown) {
+        return {
+          score: parsed.score,
+          markdown: String(parsed.markdown)
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[shared-agents] makeMonetization LLM parse failed, using fallback.", err);
+  }
+
+  return fallback;
 }
 
 export async function buildActor(actor: ActorRecord, prompt: string, template: Exclude<TemplateId, "auto">) {

@@ -23,6 +23,26 @@ export function factoryRoot() {
   }
 }
 
+export function loadEnv() {
+  const envPath = path.join(factoryRoot(), ".env");
+  if (!existsSync(envPath)) return;
+  const content = readFileSync(envPath, "utf8");
+  const lines = content.split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const parts = trimmed.split("=");
+    if (parts.length >= 2) {
+      const key = parts[0].trim();
+      const val = parts.slice(1).join("=").trim();
+      if (val && !process.env[key]) {
+        process.env[key] = val;
+      }
+    }
+  }
+}
+
+
 export function nowIso() {
   return new Date().toISOString();
 }

@@ -6,9 +6,9 @@ import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { createActorPipeline, deployActor, FileDatabase, runPact, runQualityGate, factoryRoot } from "@creator-factory/shared";
+import { createActorPipeline, deployActor, FileDatabase, runPact, runQualityGate, factoryRoot, loadEnv } from "@creator-factory/shared";
 
-
+loadEnv();
 
 const app = express();
 const db = new FileDatabase();

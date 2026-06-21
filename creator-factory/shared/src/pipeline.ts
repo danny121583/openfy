@@ -23,17 +23,17 @@ export async function createActorPipeline(input: CreateActorInput, db = new File
 
   try {
     await db.setStatus(actor.id, "analyzing");
-    const concept = makeConcept(input.prompt, input.sourceType);
-    const conceptMd = `# Actor Concept\n\n## Concept\n${concept.title}\n\n## Type\n${concept.actorType}\n\n## Target Users\n${concept.targetUsers.map((user) => `- ${user}`).join("\n")}\n\n## Monetization Angle\n${concept.monetizationAngle}\n`;
+    const concept = await makeConcept(input.prompt, input.sourceType);
+    const conceptMd = `# Actor Concept\n\n## Concept\n${concept.title}\n\n## Type\n${concept.actorType}\n\n## Target Users\n${concept.targetUsers.map((user: string) => `- ${user}`).join("\n")}\n\n## Monetization Angle\n${concept.monetizationAngle}\n`;
     let reportPath = await saveReport(actor, "actor-concept.md", conceptMd);
     await db.addReport({ actorId: actor.id, type: "actor-concept", path: reportPath, markdown: conceptMd });
 
-    const spec = makeSpec(input.prompt);
-    const specMd = `# Actor Spec\n\n## Steps\n${spec.steps.map((step) => `- ${step}`).join("\n")}\n\n## Input Schema\n\`\`\`json\n${JSON.stringify(spec.inputSchema, null, 2)}\n\`\`\`\n\n## Output Schema\n\`\`\`json\n${JSON.stringify(spec.outputSchema, null, 2)}\n\`\`\`\n\n## Failure Cases\n${spec.failureCases.map((failure) => `- ${failure}`).join("\n")}\n\n## Retry Behavior\n${spec.retryBehavior}\n`;
+    const spec = await makeSpec(input.prompt);
+    const specMd = `# Actor Spec\n\n## Steps\n${spec.steps.map((step: string) => `- ${step}`).join("\n")}\n\n## Input Schema\n\`\`\`json\n${JSON.stringify(spec.inputSchema, null, 2)}\n\`\`\`\n\n## Output Schema\n\`\`\`json\n${JSON.stringify(spec.outputSchema, null, 2)}\n\`\`\`\n\n## Failure Cases\n${spec.failureCases.map((failure: string) => `- ${failure}`).join("\n")}\n\n## Retry Behavior\n${spec.retryBehavior}\n`;
     reportPath = await saveReport(actor, "actor-spec.md", specMd);
     await db.addReport({ actorId: actor.id, type: "actor-spec", path: reportPath, markdown: specMd });
 
-    const monetization = makeMonetization(concept);
+    const monetization = await makeMonetization(concept);
     reportPath = await saveReport(actor, "monetization-report.md", monetization.markdown);
     await db.addReport({ actorId: actor.id, type: "monetization-report", path: reportPath, markdown: monetization.markdown });
 
