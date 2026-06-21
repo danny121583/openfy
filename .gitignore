@@ -31,4 +31,5 @@ creator-factory/scratch/
 creator-factory/data/
 creator-factory/AGENTS.md
 creator-factory/GEMINI.md
+/scripts/git-push-danny.sh
 
