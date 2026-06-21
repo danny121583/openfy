@@ -389,7 +389,7 @@ export function candidateIdeas(): ActorIdea[] {
       behavior: "Audit public creator pages for niche, contact, audience, proof, brand-safety, and monetization signals; rank outreach priority."
     },
     {
-      actorName: "BriefBuilderPilot — SERP Revenue Intent Brief Builder",
+      actorName: "SerpPilot — SERP Revenue Intent Brief Builder",
       slug: "serp-revenue-intent-brief-builder",
       problemSolved: "Turns search result URLs and ranking pages into revenue-intent briefs with buyer stage, offer gaps, CTA gaps, and content actions.",
       targetUsers: ["SEO agencies", "content marketers", "SaaS growth teams", "affiliate publishers"],

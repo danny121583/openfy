@@ -499,12 +499,6 @@ ${JSON.stringify({ inputUrl: "https://example.com", status: "success", score: 64
 ## Output Schema
 The Actor declares \`.actor/output_schema.json\` and links the \`results\` output to the default dataset items URL. This helps Apify Console, API consumers, and AI agents discover where run results are stored.
 
-## Store Logo
-The Actor includes an original generated PNG logo at \`${actorLogoRelativePath}\`. It must be generated with ChatGPT Images and must not use official third-party brand marks.
-
-## Monetization
-${idea.monetizationAngle}
-
 ## Limitations
 Public HTML only. No login-protected scraping, private APIs, legal compliance claims, or browser UI testing.
 

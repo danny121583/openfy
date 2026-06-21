@@ -14,3 +14,18 @@ creator-factory/generated-actors/*
 !creator-factory/generated-actors/.gitkeep
 creator-factory/reports/*
 !creator-factory/reports/.gitkeep
+
+# IDE Agent / Swarm Harness ignores
+/adaptive-harness/
+/agents/
+/skills/
+/danny-actors/
+/generated-icons/
+/docs/
+/AGENTS.md
+/GEMINI.md
+creator-factory/scratch/
+creator-factory/data/
+creator-factory/agents/
+creator-factory/AGENTS.md
+creator-factory/GEMINI.md
