@@ -32,7 +32,7 @@ ${findings.join("\n")}
 ${missing.length > 0 ? missing.join("\n") : "- No missing documentation."}
 
 ## Recommendations
-${missing.map(doc => `Add missing ${doc.split(" ")[2]} file to project root.`).join("\n") || "No documentation gaps found."}
+${missing.map(doc => `Add missing ${doc.split(" ")[3]} file to project root.`).join("\n") || "No documentation gaps found."}
 `;
 
   await fs.writeFile(reportPath, reportContent, "utf8");

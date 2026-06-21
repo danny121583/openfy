@@ -24,6 +24,7 @@ creator-factory/reports/*
 /danny-actors/
 /generated-icons/
 docs/reports/
+/reports/
 /AGENTS.md
 /GEMINI.md
 /AGENT_AUDIT_apify_2026-06-21.md
