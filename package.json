@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build:orbitos-core": "npm run build -w @orbitos/core-types && npm run build -w @orbitos/object-store && npm run build -w @orbitos/activity-log && npm run build -w @orbitos/capabilities && npm run build -w @orbitos/storage-sqlite && npm run build -w @orbitos/runtime && npm run build -w @orbitos/sync-engine",
-    "test:orbitos-core": "npm run test -w @orbitos/object-store && npm run test -w @orbitos/activity-log && npm run test -w @orbitos/capabilities && npm run test -w @orbitos/storage-sqlite && npm run test -w @orbitos/runtime && npm run test -w @orbitos/sync-engine"
+    "build:orbitos-core": "npm run build -w @orbitos/core-types && npm run build -w @orbitos/object-store && npm run build -w @orbitos/activity-log && npm run build -w @orbitos/capabilities && npm run build -w @orbitos/storage-sqlite && npm run build -w @orbitos/runtime && npm run build -w @orbitos/sync-engine && npm run build -w @orbitos/continuity",
+    "test:orbitos-core": "npm run test -w @orbitos/object-store && npm run test -w @orbitos/activity-log && npm run test -w @orbitos/capabilities && npm run test -w @orbitos/storage-sqlite && npm run test -w @orbitos/runtime && npm run test -w @orbitos/sync-engine && npm run test -w @orbitos/continuity"
   }
 }

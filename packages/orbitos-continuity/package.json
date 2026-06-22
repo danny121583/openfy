@@ -1,0 +1,26 @@
+{
+  "name": "@orbitos/continuity",
+  "version": "0.1.0",
+  "description": "Continuity Engine Foundation for OrbitOS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node test-smoke.js"
+  },
+  "dependencies": {
+    "@orbitos/core-types": "file:../orbitos-core-types"
+  },
+  "devDependencies": {
+    "@orbitos/runtime": "file:../orbitos-runtime",
+    "@orbitos/storage-sqlite": "file:../orbitos-storage-sqlite",
+    "typescript": "^5.4.5"
+  }
+}
