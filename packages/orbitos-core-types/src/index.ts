@@ -249,13 +249,15 @@ export interface CapabilityRule {
   expiresAt?: number;
 }
 
+export type SyncEventStatus = 'pending' | 'sent' | 'acknowledged' | 'failed' | 'conflicted';
+
 export interface OrbitSyncEvent {
   eventId: string;
   sequenceId: number;
   actionType: 'OBJECT_CREATE' | 'OBJECT_UPDATE' | 'OBJECT_DELETE';
   targetObjectId: string;
   payloadJson: string;
-  status: 'pending' | 'sent' | 'acknowledged' | 'failed' | 'conflicted';
+  status: SyncEventStatus;
   retryCount: number;
   createdAt: number;
   updatedAt: number;
@@ -276,9 +278,10 @@ export interface OrbitStorageProvider {
   getMetadata(key: string): Promise<string | null> | string | null;
   setMetadata(key: string, value: string): Promise<void> | void;
   enqueueSyncEvent(event: OrbitSyncEvent): Promise<void> | void;
-  getPendingSyncEvents(): Promise<OrbitSyncEvent[]> | OrbitSyncEvent[];
+  listSyncEvents(options?: { status?: SyncEventStatus }): Promise<OrbitSyncEvent[]> | OrbitSyncEvent[];
   clearSyncEvents(eventIds: string[]): Promise<void> | void;
-  updateSyncEventStatus(eventId: string, status: OrbitSyncEvent['status'], retryCount?: number): Promise<void> | void;
+  markSyncEventStatus(eventId: string, status: SyncEventStatus): Promise<void> | void;
+  incrementSyncRetry(eventId: string): Promise<void> | void;
   close(): Promise<void> | void;
 }
 

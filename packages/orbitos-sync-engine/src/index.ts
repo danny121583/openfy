@@ -29,7 +29,7 @@ export class SyncSequenceEngine {
   }
 
   async handleSyncRequest(request: { senderDeviceId: string; lastSequenceSeenBySender: number }) {
-    const events = await this.provider.getPendingSyncEvents();
+    const events = await this.provider.listSyncEvents();
     const filteredEvents: OrbitSyncEvent[] = [];
 
     for (const event of events) {

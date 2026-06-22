@@ -85,6 +85,9 @@ async function run() {
   assert.strictEqual(listAfterDeleteIncluded.length, 1);
   assert.strictEqual(listAfterDeleteIncluded[0].id, "doc_1");
   assert.strictEqual(listAfterDeleteIncluded[0].isDeleted, true);
+  assert.ok(listAfterDeleteIncluded[0].deletedAt);
+  assert.strictEqual(listAfterDeleteIncluded[0].metadata.deletedAt, listAfterDeleteIncluded[0].deletedAt);
+  assert.strictEqual(listAfterDeleteIncluded[0].metadata.deletedBy, "system");
   console.log("✓ listObjects({ includeDeleted: true }) includes soft-deleted objects");
 
   // Test append activity
@@ -160,14 +163,14 @@ async function run() {
   await provider.enqueueSyncEvent(syncEvent);
   console.log("✓ Enqueue sync event works");
 
-  let pendingEvents = await provider.getPendingSyncEvents();
+  let pendingEvents = await provider.listSyncEvents({ status: "pending" });
   assert.strictEqual(pendingEvents.length, 1);
   assert.strictEqual(pendingEvents[0].eventId, "evt_1");
   assert.strictEqual(pendingEvents[0].actionType, "OBJECT_CREATE");
-  console.log("✓ Get pending sync events works");
+  console.log("✓ Get pending sync events works via listSyncEvents");
 
   await provider.clearSyncEvents(["evt_1"]);
-  pendingEvents = await provider.getPendingSyncEvents();
+  pendingEvents = await provider.listSyncEvents({ status: "pending" });
   assert.strictEqual(pendingEvents.length, 0);
   console.log("✓ Clear sync events works");
 
@@ -187,19 +190,29 @@ async function run() {
   eventObj.payloadJson = "mutated";
   eventObj.status = "sent";
 
-  let retrievedEvents = await provider.getPendingSyncEvents();
+  let retrievedEvents = await provider.listSyncEvents();
   let foundEvent = retrievedEvents.find(e => e.eventId === "imm_1");
   assert.strictEqual(foundEvent.payloadJson, "original");
   assert.strictEqual(foundEvent.status, "pending");
-  console.log("✓ Sync Event enqueued is immutable (deep cloned & frozen)");
+
+  // Verify returned events are frozen and cannot be mutated
+  try {
+    foundEvent.status = "mutated";
+    assert.strictEqual(foundEvent.status, "pending");
+  } catch (err) {
+    assert.ok(err instanceof TypeError);
+  }
+  console.log("✓ Sync Event enqueued & retrieved is immutable (deep cloned & frozen)");
 
   // Test Update Sync Event Status
-  await provider.updateSyncEventStatus("imm_1", "acknowledged", 2);
-  retrievedEvents = await provider.getPendingSyncEvents();
+  await provider.markSyncEventStatus("imm_1", "acknowledged");
+  await provider.incrementSyncRetry("imm_1");
+  await provider.incrementSyncRetry("imm_1");
+  retrievedEvents = await provider.listSyncEvents();
   foundEvent = retrievedEvents.find(e => e.eventId === "imm_1");
   assert.strictEqual(foundEvent.status, "acknowledged");
   assert.strictEqual(foundEvent.retryCount, 2);
-  console.log("✓ Update Sync Event Status works");
+  console.log("✓ markSyncEventStatus and incrementSyncRetry works");
 
   await provider.clearSyncEvents(["imm_1"]);
 

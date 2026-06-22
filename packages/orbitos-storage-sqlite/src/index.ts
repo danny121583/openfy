@@ -1,6 +1,6 @@
 import initSqlJs from 'sql.js';
 import * as fs from 'fs';
-import type { OrbitBaseObject, OrbitActivityNode, CapabilityRule, OrbitStorageProvider, OrbitSyncEvent } from '@orbitos/core-types';
+import type { OrbitBaseObject, OrbitActivityNode, CapabilityRule, OrbitStorageProvider, OrbitSyncEvent, SyncEventStatus } from '@orbitos/core-types';
 
 export interface SQLiteProvider extends OrbitStorageProvider {}
 
@@ -173,7 +173,8 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
       if (!obj.metadata) {
         obj.metadata = {};
       }
-      obj.metadata.deleted_at = now;
+      obj.metadata.deletedAt = now;
+      obj.metadata.deletedBy = "system";
 
       database.run(`
         UPDATE objects SET is_deleted = 1, updated_at = :updated_at, data_json = :data_json WHERE id = :id
@@ -323,7 +324,7 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
       persist();
     },
 
-    async getPendingSyncEvents(): Promise<OrbitSyncEvent[]> {
+    async listSyncEvents(options?: { status?: SyncEventStatus }): Promise<OrbitSyncEvent[]> {
       const database = getDb();
       const stmt = database.prepare(`
         SELECT event_id, sequence_id, action_type, target_object_id, payload_json, status, retry_count, created_at, updated_at
@@ -333,7 +334,7 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
       const results: OrbitSyncEvent[] = [];
       while (stmt.step()) {
         const row = stmt.getAsObject();
-        results.push({
+        const event = {
           eventId: row.event_id as string,
           sequenceId: row.sequence_id as number,
           actionType: row.action_type as any,
@@ -343,9 +344,14 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
           retryCount: row.retry_count as number,
           createdAt: row.created_at as number,
           updatedAt: row.updated_at as number
-        });
+        };
+        results.push(deepCloneAndFreeze(event));
       }
       stmt.free();
+
+      if (options?.status) {
+        return results.filter(e => e.status === options.status);
+      }
       return results;
     },
 
@@ -358,32 +364,32 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
       persist();
     },
 
-    async updateSyncEventStatus(eventId: string, status: OrbitSyncEvent['status'], retryCount?: number): Promise<void> {
+    async markSyncEventStatus(eventId: string, status: SyncEventStatus): Promise<void> {
       const database = getDb();
       const now = Date.now();
-      
-      if (retryCount !== undefined) {
-        database.run(`
-          UPDATE sync_queue
-          SET status = :status, retry_count = :retry_count, updated_at = :updated_at
-          WHERE event_id = :event_id
-        `, {
-          ':status': status,
-          ':retry_count': retryCount,
-          ':updated_at': now,
-          ':event_id': eventId
-        });
-      } else {
-        database.run(`
-          UPDATE sync_queue
-          SET status = :status, updated_at = :updated_at
-          WHERE event_id = :event_id
-        `, {
-          ':status': status,
-          ':updated_at': now,
-          ':event_id': eventId
-        });
-      }
+      database.run(`
+        UPDATE sync_queue
+        SET status = :status, updated_at = :updated_at
+        WHERE event_id = :event_id
+      `, {
+        ':status': status,
+        ':updated_at': now,
+        ':event_id': eventId
+      });
+      persist();
+    },
+
+    async incrementSyncRetry(eventId: string): Promise<void> {
+      const database = getDb();
+      const now = Date.now();
+      database.run(`
+        UPDATE sync_queue
+        SET retry_count = retry_count + 1, updated_at = :updated_at
+        WHERE event_id = :event_id
+      `, {
+        ':updated_at': now,
+        ':event_id': eventId
+      });
       persist();
     },
 

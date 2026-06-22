@@ -34,8 +34,10 @@ async function run() {
       getMetadata: (key) => rawProvider.getMetadata(key),
       setMetadata: (key, val) => rawProvider.setMetadata(key, val),
       enqueueSyncEvent: (evt) => rawProvider.enqueueSyncEvent(evt),
-      getPendingSyncEvents: () => rawProvider.getPendingSyncEvents(),
+      listSyncEvents: (options) => rawProvider.listSyncEvents(options),
       clearSyncEvents: (ids) => rawProvider.clearSyncEvents(ids),
+      markSyncEventStatus: (eventId, status) => rawProvider.markSyncEventStatus(eventId, status),
+      incrementSyncRetry: (eventId) => rawProvider.incrementSyncRetry(eventId),
       close: () => rawProvider.close()
     };
 
@@ -83,7 +85,7 @@ async function run() {
   console.log("✓ runtime.sequence.next() service allocates atomically");
 
   // Assert sync event is enqueued
-  let pendingEvents = await storageProvider.getPendingSyncEvents();
+  let pendingEvents = await storageProvider.listSyncEvents({ status: 'pending' });
   assert.strictEqual(pendingEvents.length, 1);
   assert.strictEqual(pendingEvents[0].actionType, "OBJECT_CREATE");
   assert.strictEqual(pendingEvents[0].targetObjectId, "note_101");
@@ -134,7 +136,7 @@ async function run() {
   assert.strictEqual(seqAfterUpdate, "3");
   console.log("✓ Sequence number incremented on update");
 
-  let pendingAfterUpdate = await storageProvider.getPendingSyncEvents();
+  let pendingAfterUpdate = await storageProvider.listSyncEvents();
   assert.strictEqual(pendingAfterUpdate.length, 2);
   assert.strictEqual(pendingAfterUpdate[1].actionType, "OBJECT_UPDATE");
   console.log("✓ Sync event enqueued on update");
@@ -162,7 +164,7 @@ async function run() {
   assert.strictEqual(seqAfterDelete, "4");
   console.log("✓ Sequence number incremented on delete");
 
-  let pendingAfterDelete = await storageProvider.getPendingSyncEvents();
+  let pendingAfterDelete = await storageProvider.listSyncEvents();
   assert.strictEqual(pendingAfterDelete.length, 3);
   assert.strictEqual(pendingAfterDelete[2].actionType, "OBJECT_DELETE");
   console.log("✓ Sync event enqueued on delete");
@@ -182,9 +184,10 @@ async function run() {
 
   // Verify tombstones
   assert.ok(listWithDeleted[0].deletedAt);
-  assert.ok(listWithDeleted[0].metadata.deleted_at);
-  assert.strictEqual(listWithDeleted[0].deletedAt, listWithDeleted[0].metadata.deleted_at);
-  console.log("✓ Soft-deleted object contains deletedAt and metadata.deleted_at tombstones");
+  assert.ok(listWithDeleted[0].metadata.deletedAt);
+  assert.strictEqual(listWithDeleted[0].deletedAt, listWithDeleted[0].metadata.deletedAt);
+  assert.strictEqual(listWithDeleted[0].metadata.deletedBy, "system");
+  console.log("✓ Soft-deleted object contains deletedAt and metadata.deletedAt / deletedBy tombstones");
 
   // 4. Capability persistence tests
   console.log("Running Capability Persistence Tests...");

@@ -208,7 +208,8 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
           if (!existing.metadata) {
             existing.metadata = {};
           }
-          existing.metadata.deleted_at = now;
+          existing.metadata.deletedAt = now;
+          existing.metadata.deletedBy = 'system';
           existing.syncSequence = nextSeq;
           existing.updatedAt = now;
 
