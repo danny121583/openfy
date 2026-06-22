@@ -19,9 +19,10 @@ export interface OrbitRuntime {
     get<T extends OrbitBaseObject>(id: string): Promise<T | null>;
     update<T extends OrbitBaseObject>(id: string, patch: Partial<T>): Promise<T>;
     delete(id: string): Promise<boolean>;
-    list(): Promise<OrbitBaseObject[]>;
+    list(options?: { includeDeleted?: boolean }): Promise<OrbitBaseObject[]>;
   };
   activities: {
+    append(activity: OrbitActivityNode): Promise<void>;
     list(): Promise<OrbitActivityNode[]>;
   };
   capabilities: {
@@ -248,13 +249,16 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
         return success;
       },
 
-      async list(): Promise<OrbitBaseObject[]> {
-        const list = await provider.listObjects();
+      async list(options?: { includeDeleted?: boolean }): Promise<OrbitBaseObject[]> {
+        const list = await provider.listObjects(options);
         return JSON.parse(JSON.stringify(list));
       }
     },
 
     activities: {
+      async append(activity: OrbitActivityNode): Promise<void> {
+        await provider.appendActivity(activity);
+      },
       async list(): Promise<OrbitActivityNode[]> {
         const list = await provider.listActivities();
         return JSON.parse(JSON.stringify(list));

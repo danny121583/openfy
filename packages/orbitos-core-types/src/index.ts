@@ -227,7 +227,10 @@ export interface OrbitActivityNode {
     | 'AGENT_TOOL_CALL'
     | 'DEVICE_CONNECTED'
     | 'USER_APPROVAL'
-    | 'SYNC_RECEIVED';
+    | 'SYNC_RECEIVED'
+    | 'SESSION_SNAPSHOT_SAVED'
+    | 'SESSION_HANDOFF_REGISTERED'
+    | 'SESSION_RESTORED';
   targetObjectId: string;
   changesPayloadJson: string;
   idempotencyKey: string;
