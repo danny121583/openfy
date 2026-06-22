@@ -1,6 +1,6 @@
 import initSqlJs from 'sql.js';
 import * as fs from 'fs';
-import type { OrbitBaseObject, OrbitActivityNode, CapabilityRule, OrbitStorageProvider } from '@orbitos/core-types';
+import type { OrbitBaseObject, OrbitActivityNode, CapabilityRule, OrbitStorageProvider, OrbitSyncEvent } from '@orbitos/core-types';
 
 export interface SQLiteProvider extends OrbitStorageProvider {}
 
@@ -69,6 +69,14 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
         CREATE TABLE IF NOT EXISTS metadata (
           key TEXT PRIMARY KEY,
           value TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS sync_queue (
+          event_id TEXT PRIMARY KEY,
+          action_type TEXT NOT NULL,
+          target_object_id TEXT NOT NULL,
+          payload_json TEXT NOT NULL,
+          timestamp INTEGER NOT NULL
         );
       `);
       persist();
@@ -263,6 +271,48 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
         ':key': key,
         ':value': value
       });
+      persist();
+    },
+
+    async enqueueSyncEvent(event: OrbitSyncEvent): Promise<void> {
+      const database = getDb();
+      database.run(`
+        INSERT INTO sync_queue (event_id, action_type, target_object_id, payload_json, timestamp)
+        VALUES (:event_id, :action_type, :target_object_id, :payload_json, :timestamp)
+      `, {
+        ':event_id': event.eventId,
+        ':action_type': event.actionType,
+        ':target_object_id': event.targetObjectId,
+        ':payload_json': event.payloadJson,
+        ':timestamp': event.timestamp
+      });
+      persist();
+    },
+
+    async getPendingSyncEvents(): Promise<OrbitSyncEvent[]> {
+      const database = getDb();
+      const stmt = database.prepare('SELECT event_id, action_type, target_object_id, payload_json, timestamp FROM sync_queue ORDER BY timestamp ASC');
+      const results: OrbitSyncEvent[] = [];
+      while (stmt.step()) {
+        const row = stmt.getAsObject();
+        results.push({
+          eventId: row.event_id as string,
+          actionType: row.action_type as any,
+          targetObjectId: row.target_object_id as string,
+          payloadJson: row.payload_json as string,
+          timestamp: row.timestamp as number
+        });
+      }
+      stmt.free();
+      return results;
+    },
+
+    async clearSyncEvents(eventIds: string[]): Promise<void> {
+      if (eventIds.length === 0) return;
+      const database = getDb();
+      for (const id of eventIds) {
+        database.run('DELETE FROM sync_queue WHERE event_id = :id', { ':id': id });
+      }
       persist();
     },
 

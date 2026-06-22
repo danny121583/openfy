@@ -248,6 +248,14 @@ export interface CapabilityRule {
   expiresAt?: number;
 }
 
+export interface OrbitSyncEvent {
+  eventId: string;
+  actionType: 'OBJECT_CREATE' | 'OBJECT_UPDATE' | 'OBJECT_DELETE';
+  targetObjectId: string;
+  payloadJson: string;
+  timestamp: number;
+}
+
 export interface OrbitStorageProvider {
   initialize(): Promise<void> | void;
   transaction<T>(fn: () => T | Promise<T>): Promise<T> | T;
@@ -262,6 +270,10 @@ export interface OrbitStorageProvider {
   listCapabilities(): Promise<CapabilityRule[]> | CapabilityRule[];
   getMetadata(key: string): Promise<string | null> | string | null;
   setMetadata(key: string, value: string): Promise<void> | void;
+  enqueueSyncEvent(event: OrbitSyncEvent): Promise<void> | void;
+  getPendingSyncEvents(): Promise<OrbitSyncEvent[]> | OrbitSyncEvent[];
+  clearSyncEvents(eventIds: string[]): Promise<void> | void;
   close(): Promise<void> | void;
 }
+
 

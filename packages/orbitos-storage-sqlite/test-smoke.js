@@ -145,6 +145,28 @@ async function run() {
   assert.strictEqual(rulesAfterRev.length, 0);
   console.log("✓ Revoke/delete capability works");
 
+  // Test Sync Queue APIs
+  const syncEvent = {
+    eventId: "evt_1",
+    actionType: "OBJECT_CREATE",
+    targetObjectId: "doc_1",
+    payloadJson: '{"test":true}',
+    timestamp: Date.now()
+  };
+  await provider.enqueueSyncEvent(syncEvent);
+  console.log("✓ Enqueue sync event works");
+
+  let pendingEvents = await provider.getPendingSyncEvents();
+  assert.strictEqual(pendingEvents.length, 1);
+  assert.strictEqual(pendingEvents[0].eventId, "evt_1");
+  assert.strictEqual(pendingEvents[0].actionType, "OBJECT_CREATE");
+  console.log("✓ Get pending sync events works");
+
+  await provider.clearSyncEvents(["evt_1"]);
+  pendingEvents = await provider.getPendingSyncEvents();
+  assert.strictEqual(pendingEvents.length, 0);
+  console.log("✓ Clear sync events works");
+
   await provider.close();
   console.log("✓ Close DB works");
 

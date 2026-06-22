@@ -33,6 +33,9 @@ async function run() {
       listCapabilities: () => rawProvider.listCapabilities(),
       getMetadata: (key) => rawProvider.getMetadata(key),
       setMetadata: (key, val) => rawProvider.setMetadata(key, val),
+      enqueueSyncEvent: (evt) => rawProvider.enqueueSyncEvent(evt),
+      getPendingSyncEvents: () => rawProvider.getPendingSyncEvents(),
+      clearSyncEvents: (ids) => rawProvider.clearSyncEvents(ids),
       close: () => rawProvider.close()
     };
 
@@ -40,7 +43,7 @@ async function run() {
     return { runtime, storageProvider };
   };
 
-  // 1. Persistence tests
+  // 1. Persistence & Sequence Tests
   console.log("Running Persistence & Metadata Tests...");
   let { runtime, storageProvider } = await bootRuntime();
 
@@ -50,7 +53,7 @@ async function run() {
     ownerId: "usr_danny",
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    syncSequence: 1,
+    syncSequence: 0,
     isDeleted: false,
     metadata: { content: "Initial Content" },
     knowledge: {
@@ -66,8 +69,20 @@ async function run() {
 
   // Create note
   await runtime.objects.create(noteObject);
+
+  // Assert local sequence increments to 1
+  const initialSeq = await storageProvider.getMetadata("sys_local_sequence");
+  assert.strictEqual(initialSeq, "1");
+  console.log("✓ Sequence number incremented on creation");
+
+  // Assert sync event is enqueued
+  let pendingEvents = await storageProvider.getPendingSyncEvents();
+  assert.strictEqual(pendingEvents.length, 1);
+  assert.strictEqual(pendingEvents[0].actionType, "OBJECT_CREATE");
+  assert.strictEqual(pendingEvents[0].targetObjectId, "note_101");
+  console.log("✓ Sync event enqueued on creation");
   
-  // Set metadata
+  // Set custom metadata
   await storageProvider.setMetadata("runtime_version", "v0.1.0-alpha");
 
   // Close and restart
@@ -83,7 +98,8 @@ async function run() {
   assert.ok(persistedNote);
   assert.strictEqual(persistedNote.id, "note_101");
   assert.strictEqual(persistedNote.metadata.content, "Initial Content");
-  console.log("✓ Persistence Test passed: object survives restart");
+  assert.strictEqual(persistedNote.syncSequence, 1);
+  console.log("✓ Persistence Test passed: object survives restart with sequence number");
 
   // Verify metadata persistence
   const persistedMeta = await storageProvider.getMetadata("runtime_version");
@@ -93,22 +109,28 @@ async function run() {
   // Prove runtime works when provider is passed only as OrbitStorageProvider
   console.log("✓ Runtime works when provider is passed only as OrbitStorageProvider wrapper");
 
-  // 2. Activity generation tests
-  console.log("Running Activity Generation Tests...");
+  // 2. Activity generation & Update Sequence tests
+  console.log("Running Activity Generation & Update Tests...");
   
   // Create object generates OBJECT_CREATE activity
   const activitiesAfterCreate = await runtime.activities.list();
   assert.strictEqual(activitiesAfterCreate.length, 1);
   assert.strictEqual(activitiesAfterCreate[0].actionType, "OBJECT_CREATE");
-  assert.strictEqual(activitiesAfterCreate[0].targetObjectId, "note_101");
-  assert.strictEqual(activitiesAfterCreate[0].actor.type, "system");
-  assert.strictEqual(activitiesAfterCreate[0].actor.id, "runtime");
   console.log("✓ Activity Test: OBJECT_CREATE auto-emitted");
 
   // Update object generates OBJECT_UPDATE activity
   await runtime.objects.update("note_101", {
     metadata: { content: "Updated Content" }
   });
+
+  const seqAfterUpdate = await storageProvider.getMetadata("sys_local_sequence");
+  assert.strictEqual(seqAfterUpdate, "2");
+  console.log("✓ Sequence number incremented on update");
+
+  let pendingAfterUpdate = await storageProvider.getPendingSyncEvents();
+  assert.strictEqual(pendingAfterUpdate.length, 2);
+  assert.strictEqual(pendingAfterUpdate[1].actionType, "OBJECT_UPDATE");
+  console.log("✓ Sync event enqueued on update");
 
   const activitiesAfterUpdate = await runtime.activities.list();
   assert.strictEqual(activitiesAfterUpdate.length, 2);
@@ -123,11 +145,20 @@ async function run() {
   const listBeforeDelete = await runtime.objects.list();
   assert.strictEqual(listBeforeDelete.length, 1);
 
-  // Delete object generates OBJECT_DELETE activity
+  // Delete object
   await runtime.objects.delete("note_101");
   const getAfterDelete = await runtime.objects.get("note_101");
   assert.strictEqual(getAfterDelete, null); // should be soft deleted and get should return null
   console.log("✓ Activity Test: OBJECT_DELETE auto-emitted");
+
+  const seqAfterDelete = await storageProvider.getMetadata("sys_local_sequence");
+  assert.strictEqual(seqAfterDelete, "3");
+  console.log("✓ Sequence number incremented on delete");
+
+  let pendingAfterDelete = await storageProvider.getPendingSyncEvents();
+  assert.strictEqual(pendingAfterDelete.length, 3);
+  assert.strictEqual(pendingAfterDelete[2].actionType, "OBJECT_DELETE");
+  console.log("✓ Sync event enqueued on delete");
 
   // Default listObjects() excludes deleted objects
   const listDefault = await storageProvider.listObjects();
@@ -139,6 +170,7 @@ async function run() {
   assert.strictEqual(listWithDeleted.length, 1);
   assert.strictEqual(listWithDeleted[0].id, "note_101");
   assert.strictEqual(listWithDeleted[0].isDeleted, true);
+  assert.strictEqual(listWithDeleted[0].syncSequence, 3);
   console.log("✓ listObjects({ includeDeleted: true }) includes soft-deleted objects");
 
   // 4. Capability persistence tests

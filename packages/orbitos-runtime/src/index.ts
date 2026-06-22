@@ -44,6 +44,13 @@ function generateId(prefix: string): string {
 export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvider }): OrbitRuntime {
   const provider = options.storageProvider;
 
+  async function incrementSequence(): Promise<number> {
+    const currentSeqStr = await provider.getMetadata('sys_local_sequence') || '0';
+    const nextSeq = parseInt(currentSeqStr, 10) + 1;
+    await provider.setMetadata('sys_local_sequence', nextSeq.toString());
+    return nextSeq;
+  }
+
   return {
     objects: {
       async create<T extends OrbitBaseObject>(object: T): Promise<T> {
@@ -58,7 +65,6 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
         clone.createdAt = clone.createdAt || now;
         clone.updatedAt = clone.updatedAt || now;
         clone.isDeleted = false;
-        clone.syncSequence = clone.syncSequence || 0;
         
         clone.knowledge = {
           summary: clone.knowledge?.summary || '',
@@ -71,6 +77,9 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
         };
 
         await provider.transaction(async () => {
+          const nextSeq = await incrementSequence();
+          clone.syncSequence = nextSeq;
+
           await provider.putObject(clone);
 
           const activityId = generateId('act');
@@ -87,6 +96,15 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
             timestamp: now
           };
           await provider.appendActivity(activity);
+
+          const eventId = generateId('evt');
+          await provider.enqueueSyncEvent({
+            eventId,
+            actionType: 'OBJECT_CREATE',
+            targetObjectId: clone.id,
+            payloadJson: JSON.stringify(clone),
+            timestamp: now
+          });
         });
 
         return JSON.parse(JSON.stringify(clone)) as T;
@@ -121,6 +139,9 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
         };
 
         await provider.transaction(async () => {
+          const nextSeq = await incrementSequence();
+          updated.syncSequence = nextSeq;
+
           await provider.putObject(updated);
 
           const activityId = generateId('act');
@@ -137,6 +158,15 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
             timestamp: now
           };
           await provider.appendActivity(activity);
+
+          const eventId = generateId('evt');
+          await provider.enqueueSyncEvent({
+            eventId,
+            actionType: 'OBJECT_UPDATE',
+            targetObjectId: id,
+            payloadJson: JSON.stringify(updated),
+            timestamp: now
+          });
         });
 
         return JSON.parse(JSON.stringify(updated)) as T;
@@ -148,8 +178,14 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
 
         let success = false;
         await provider.transaction(async () => {
-          await provider.deleteObject(id);
+          const nextSeq = await incrementSequence();
+          existing.isDeleted = true;
+          existing.syncSequence = nextSeq;
+          existing.updatedAt = Date.now();
+
+          await provider.putObject(existing);
           success = true;
+
           const now = Date.now();
           const activityId = generateId('act');
           const activity: OrbitActivityNode = {
@@ -165,6 +201,15 @@ export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvi
             timestamp: now
           };
           await provider.appendActivity(activity);
+
+          const eventId = generateId('evt');
+          await provider.enqueueSyncEvent({
+            eventId,
+            actionType: 'OBJECT_DELETE',
+            targetObjectId: id,
+            payloadJson: JSON.stringify(existing),
+            timestamp: now
+          });
         });
 
         return success;
