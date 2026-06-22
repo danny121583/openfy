@@ -1,0 +1,24 @@
+{
+  "name": "@orbitos/object-store",
+  "version": "0.1.0",
+  "description": "Local-first in-memory object store abstraction for OrbitOS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node test-smoke.js"
+  },
+  "dependencies": {
+    "@orbitos/core-types": "file:../orbitos-core-types"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

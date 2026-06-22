@@ -1,0 +1,218 @@
+import { createCapabilityEngine } from '@orbitos/capabilities';
+import type {
+  OrbitBaseObject,
+  OrbitObjectType,
+  OrbitActivityNode,
+  CapabilityRule,
+  ApprovalLevel,
+  OrbitStorageProvider
+} from '@orbitos/core-types';
+
+export interface OrbitRuntime {
+  objects: {
+    create<T extends OrbitBaseObject>(object: T): Promise<T>;
+    get<T extends OrbitBaseObject>(id: string): Promise<T | null>;
+    update<T extends OrbitBaseObject>(id: string, patch: Partial<T>): Promise<T>;
+    delete(id: string): Promise<boolean>;
+    list(): Promise<OrbitBaseObject[]>;
+  };
+  activities: {
+    list(): Promise<OrbitActivityNode[]>;
+  };
+  capabilities: {
+    grant(rule: CapabilityRule): Promise<CapabilityRule>;
+    revoke(ruleId: string): Promise<boolean>;
+    check(params: {
+      accessor: { type: 'app' | 'agent' | 'user_role'; id: string };
+      scope: string;
+      targetObjectType: OrbitObjectType;
+      targetObjectId?: string;
+      action: 'CREATE' | 'READ' | 'UPDATE' | 'DELETE' | 'EXECUTE';
+    }): Promise<{
+      allowed: boolean;
+      approvalLevel: ApprovalLevel;
+      reason?: string;
+      matchedRuleId?: string;
+    }>;
+  };
+}
+
+function generateId(prefix: string): string {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+}
+
+export function createOrbitRuntime(options: { storageProvider: OrbitStorageProvider }): OrbitRuntime {
+  const provider = options.storageProvider;
+
+  return {
+    objects: {
+      async create<T extends OrbitBaseObject>(object: T): Promise<T> {
+        const existing = await provider.getObject(object.id);
+        if (existing) {
+          throw new Error(`Duplicate object ID error: ${object.id} already exists.`);
+        }
+
+        const now = Date.now();
+        const clone: OrbitBaseObject = JSON.parse(JSON.stringify(object));
+        
+        clone.createdAt = clone.createdAt || now;
+        clone.updatedAt = clone.updatedAt || now;
+        clone.isDeleted = false;
+        clone.syncSequence = clone.syncSequence || 0;
+        
+        clone.knowledge = {
+          summary: clone.knowledge?.summary || '',
+          tags: clone.knowledge?.tags || [],
+          embeddingsId: clone.knowledge?.embeddingsId || null,
+          notes: clone.knowledge?.notes || '',
+          relationships: clone.knowledge?.relationships || [],
+          versionHistory: clone.knowledge?.versionHistory || [],
+          auditTrail: clone.knowledge?.auditTrail || []
+        };
+
+        await provider.transaction(async () => {
+          await provider.putObject(clone);
+
+          const activityId = generateId('act');
+          const activity: OrbitActivityNode = {
+            activityId,
+            sessionId: '',
+            deviceId: '',
+            actor: { type: 'system', id: 'runtime' },
+            actionType: 'OBJECT_CREATE',
+            targetObjectId: clone.id,
+            changesPayloadJson: JSON.stringify(clone),
+            idempotencyKey: `idem_${activityId}`,
+            signature: '',
+            timestamp: now
+          };
+          await provider.appendActivity(activity);
+        });
+
+        return JSON.parse(JSON.stringify(clone)) as T;
+      },
+
+      async get<T extends OrbitBaseObject>(id: string): Promise<T | null> {
+        const obj = await provider.getObject(id);
+        if (!obj) return null;
+        return JSON.parse(JSON.stringify(obj)) as T;
+      },
+
+      async update<T extends OrbitBaseObject>(id: string, patch: Partial<T>): Promise<T> {
+        const existing = await provider.getObject(id);
+        if (!existing) {
+          throw new Error(`Object ID ${id} not found.`);
+        }
+
+        const now = Date.now();
+        const patchClone = JSON.parse(JSON.stringify(patch));
+
+        const updated: OrbitBaseObject = {
+          ...existing,
+          ...patchClone,
+          updatedAt: now,
+          id: existing.id,
+          schemaType: existing.schemaType,
+          knowledge: {
+            ...existing.knowledge,
+            ...(patchClone.knowledge || {}),
+            relationships: patchClone.knowledge?.relationships || existing.knowledge.relationships
+          }
+        };
+
+        await provider.transaction(async () => {
+          await provider.putObject(updated);
+
+          const activityId = generateId('act');
+          const activity: OrbitActivityNode = {
+            activityId,
+            sessionId: '',
+            deviceId: '',
+            actor: { type: 'system', id: 'runtime' },
+            actionType: 'OBJECT_UPDATE',
+            targetObjectId: id,
+            changesPayloadJson: JSON.stringify(patchClone),
+            idempotencyKey: `idem_${activityId}`,
+            signature: '',
+            timestamp: now
+          };
+          await provider.appendActivity(activity);
+        });
+
+        return JSON.parse(JSON.stringify(updated)) as T;
+      },
+
+      async delete(id: string): Promise<boolean> {
+        const existing = await provider.getObject(id);
+        if (!existing) return false;
+
+        let success = false;
+        await provider.transaction(async () => {
+          await provider.deleteObject(id);
+          success = true;
+          const now = Date.now();
+          const activityId = generateId('act');
+          const activity: OrbitActivityNode = {
+            activityId,
+            sessionId: '',
+            deviceId: '',
+            actor: { type: 'system', id: 'runtime' },
+            actionType: 'OBJECT_DELETE',
+            targetObjectId: id,
+            changesPayloadJson: '{}',
+            idempotencyKey: `idem_${activityId}`,
+            signature: '',
+            timestamp: now
+          };
+          await provider.appendActivity(activity);
+        });
+
+        return success;
+      },
+
+      async list(): Promise<OrbitBaseObject[]> {
+        const list = await provider.listObjects();
+        return JSON.parse(JSON.stringify(list));
+      }
+    },
+
+    activities: {
+      async list(): Promise<OrbitActivityNode[]> {
+        const list = await provider.listActivities();
+        return JSON.parse(JSON.stringify(list));
+      }
+    },
+
+    capabilities: {
+      async grant(rule: CapabilityRule): Promise<CapabilityRule> {
+        await provider.saveCapability(rule);
+        return rule;
+      },
+
+      async revoke(ruleId: string): Promise<boolean> {
+        const rules = await provider.listCapabilities();
+        const exists = rules.some(r => r.ruleId === ruleId);
+        if (!exists) return false;
+        await provider.deleteCapability(ruleId);
+        return true;
+      },
+
+      async check(params: {
+        accessor: { type: 'app' | 'agent' | 'user_role'; id: string };
+        scope: string;
+        targetObjectType: OrbitObjectType;
+        targetObjectId?: string;
+        action: 'CREATE' | 'READ' | 'UPDATE' | 'DELETE' | 'EXECUTE';
+      }) {
+        const rulesList = await provider.listCapabilities();
+        const engine = createCapabilityEngine();
+        
+        for (const rule of rulesList) {
+          await engine.grant(rule);
+        }
+
+        return engine.check(params);
+      }
+    }
+  };
+}

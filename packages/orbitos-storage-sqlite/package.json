@@ -1,0 +1,26 @@
+{
+  "name": "@orbitos/storage-sqlite",
+  "version": "0.1.0",
+  "description": "SQLite storage provider for OrbitOS Core Runtime",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "node test-smoke.js"
+  },
+  "dependencies": {
+    "@orbitos/core-types": "file:../orbitos-core-types",
+    "sql.js": "^1.10.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@types/sql.js": "^1.4.9"
+  }
+}
