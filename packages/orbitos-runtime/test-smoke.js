@@ -75,6 +75,13 @@ async function run() {
   assert.strictEqual(initialSeq, "1");
   console.log("✓ Sequence number incremented on creation");
 
+  // Assert sequence service exists and allocates
+  const currentSeqNum = await runtime.sequence.current();
+  assert.strictEqual(currentSeqNum, 1);
+  const nextAllocated = await runtime.sequence.next();
+  assert.strictEqual(nextAllocated, 2);
+  console.log("✓ runtime.sequence.next() service allocates atomically");
+
   // Assert sync event is enqueued
   let pendingEvents = await storageProvider.getPendingSyncEvents();
   assert.strictEqual(pendingEvents.length, 1);
@@ -124,7 +131,7 @@ async function run() {
   });
 
   const seqAfterUpdate = await storageProvider.getMetadata("sys_local_sequence");
-  assert.strictEqual(seqAfterUpdate, "2");
+  assert.strictEqual(seqAfterUpdate, "3");
   console.log("✓ Sequence number incremented on update");
 
   let pendingAfterUpdate = await storageProvider.getPendingSyncEvents();
@@ -152,7 +159,7 @@ async function run() {
   console.log("✓ Activity Test: OBJECT_DELETE auto-emitted");
 
   const seqAfterDelete = await storageProvider.getMetadata("sys_local_sequence");
-  assert.strictEqual(seqAfterDelete, "3");
+  assert.strictEqual(seqAfterDelete, "4");
   console.log("✓ Sequence number incremented on delete");
 
   let pendingAfterDelete = await storageProvider.getPendingSyncEvents();
@@ -170,8 +177,14 @@ async function run() {
   assert.strictEqual(listWithDeleted.length, 1);
   assert.strictEqual(listWithDeleted[0].id, "note_101");
   assert.strictEqual(listWithDeleted[0].isDeleted, true);
-  assert.strictEqual(listWithDeleted[0].syncSequence, 3);
+  assert.strictEqual(listWithDeleted[0].syncSequence, 4);
   console.log("✓ listObjects({ includeDeleted: true }) includes soft-deleted objects");
+
+  // Verify tombstones
+  assert.ok(listWithDeleted[0].deletedAt);
+  assert.ok(listWithDeleted[0].metadata.deleted_at);
+  assert.strictEqual(listWithDeleted[0].deletedAt, listWithDeleted[0].metadata.deleted_at);
+  console.log("✓ Soft-deleted object contains deletedAt and metadata.deleted_at tombstones");
 
   // 4. Capability persistence tests
   console.log("Running Capability Persistence Tests...");

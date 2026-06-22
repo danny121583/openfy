@@ -61,6 +61,18 @@ export class SyncSequenceEngine {
         if (!localObj) {
           shouldApply = true;
         } else {
+          /* 
+           * ARCHITECTURE NOTE: Temporary Conflict Strategy
+           * 
+           * Last-Write-Wins (LWW) based on updatedAt timestamps and sequence tiebreakers
+           * is used as a simple, durable MVP merging policy. However, this is a
+           * temporary strategy. As OrbitOS scales to support collaborative text documents,
+           * nested notes directories, and concurrent agent workspaces, LWW will be
+           * replaced/complemented with Automerge, Yjs, or custom state-based CRDTs.
+           * 
+           * DO NOT implement full CRDT logic now. This note serves to warn developers
+           * that these branches will diverge on collaborative items.
+           */
           // Last-Write-Wins conflict resolution based on updatedAt and sequence tiebreakers
           if (remoteObj.updatedAt > localObj.updatedAt) {
             shouldApply = true;

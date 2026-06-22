@@ -4,6 +4,20 @@ import type { OrbitBaseObject, OrbitActivityNode, CapabilityRule, OrbitStoragePr
 
 export interface SQLiteProvider extends OrbitStorageProvider {}
 
+function deepCloneAndFreeze<T>(obj: T): T {
+  const clone = JSON.parse(JSON.stringify(obj));
+  function freeze(o: any) {
+    Object.freeze(o);
+    Object.keys(o).forEach(key => {
+      if (typeof o[key] === 'object' && o[key] !== null && !Object.isFrozen(o[key])) {
+        freeze(o[key]);
+      }
+    });
+    return o;
+  }
+  return freeze(clone) as T;
+}
+
 export function createSQLiteProvider(options: { databasePath: string }): OrbitStorageProvider {
   let db: any = null;
   let SQL: any = null;
@@ -73,16 +87,23 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
 
         CREATE TABLE IF NOT EXISTS sync_queue (
           event_id TEXT PRIMARY KEY,
+          sequence_id INTEGER NOT NULL,
           action_type TEXT NOT NULL,
           target_object_id TEXT NOT NULL,
           payload_json TEXT NOT NULL,
-          timestamp INTEGER NOT NULL
+          status TEXT NOT NULL,
+          retry_count INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
         );
       `);
       persist();
     },
 
     async transaction<T>(fn: () => T | Promise<T>): Promise<T> {
+      if (inTransaction) {
+        return await fn();
+      }
       const database = getDb();
       inTransaction = true;
       try {
@@ -148,6 +169,11 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
 
       obj.isDeleted = true;
       obj.updatedAt = now;
+      obj.deletedAt = now;
+      if (!obj.metadata) {
+        obj.metadata = {};
+      }
+      obj.metadata.deleted_at = now;
 
       database.run(`
         UPDATE objects SET is_deleted = 1, updated_at = :updated_at, data_json = :data_json WHERE id = :id
@@ -275,32 +301,48 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
     },
 
     async enqueueSyncEvent(event: OrbitSyncEvent): Promise<void> {
+      // 1. Deep clone and deep freeze before serialization to guarantee immutability
+      const frozenEvent = deepCloneAndFreeze(event);
+
       const database = getDb();
       database.run(`
-        INSERT INTO sync_queue (event_id, action_type, target_object_id, payload_json, timestamp)
-        VALUES (:event_id, :action_type, :target_object_id, :payload_json, :timestamp)
+        INSERT INTO sync_queue (
+          event_id, sequence_id, action_type, target_object_id, payload_json, status, retry_count, created_at, updated_at
+        ) VALUES (:event_id, :sequence_id, :action_type, :target_object_id, :payload_json, :status, :retry_count, :created_at, :updated_at)
       `, {
-        ':event_id': event.eventId,
-        ':action_type': event.actionType,
-        ':target_object_id': event.targetObjectId,
-        ':payload_json': event.payloadJson,
-        ':timestamp': event.timestamp
+        ':event_id': frozenEvent.eventId,
+        ':sequence_id': frozenEvent.sequenceId,
+        ':action_type': frozenEvent.actionType,
+        ':target_object_id': frozenEvent.targetObjectId,
+        ':payload_json': frozenEvent.payloadJson,
+        ':status': frozenEvent.status,
+        ':retry_count': frozenEvent.retryCount,
+        ':created_at': frozenEvent.createdAt,
+        ':updated_at': frozenEvent.updatedAt
       });
       persist();
     },
 
     async getPendingSyncEvents(): Promise<OrbitSyncEvent[]> {
       const database = getDb();
-      const stmt = database.prepare('SELECT event_id, action_type, target_object_id, payload_json, timestamp FROM sync_queue ORDER BY timestamp ASC');
+      const stmt = database.prepare(`
+        SELECT event_id, sequence_id, action_type, target_object_id, payload_json, status, retry_count, created_at, updated_at
+        FROM sync_queue
+        ORDER BY sequence_id ASC, created_at ASC
+      `);
       const results: OrbitSyncEvent[] = [];
       while (stmt.step()) {
         const row = stmt.getAsObject();
         results.push({
           eventId: row.event_id as string,
+          sequenceId: row.sequence_id as number,
           actionType: row.action_type as any,
           targetObjectId: row.target_object_id as string,
           payloadJson: row.payload_json as string,
-          timestamp: row.timestamp as number
+          status: row.status as any,
+          retryCount: row.retry_count as number,
+          createdAt: row.created_at as number,
+          updatedAt: row.updated_at as number
         });
       }
       stmt.free();
@@ -312,6 +354,35 @@ export function createSQLiteProvider(options: { databasePath: string }): OrbitSt
       const database = getDb();
       for (const id of eventIds) {
         database.run('DELETE FROM sync_queue WHERE event_id = :id', { ':id': id });
+      }
+      persist();
+    },
+
+    async updateSyncEventStatus(eventId: string, status: OrbitSyncEvent['status'], retryCount?: number): Promise<void> {
+      const database = getDb();
+      const now = Date.now();
+      
+      if (retryCount !== undefined) {
+        database.run(`
+          UPDATE sync_queue
+          SET status = :status, retry_count = :retry_count, updated_at = :updated_at
+          WHERE event_id = :event_id
+        `, {
+          ':status': status,
+          ':retry_count': retryCount,
+          ':updated_at': now,
+          ':event_id': eventId
+        });
+      } else {
+        database.run(`
+          UPDATE sync_queue
+          SET status = :status, updated_at = :updated_at
+          WHERE event_id = :event_id
+        `, {
+          ':status': status,
+          ':updated_at': now,
+          ':event_id': eventId
+        });
       }
       persist();
     },

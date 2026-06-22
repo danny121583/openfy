@@ -104,10 +104,14 @@ async function run() {
   await devA.provider.putObject(updatedA);
   await devA.provider.enqueueSyncEvent({
     eventId: "evt_conf_a",
+    sequenceId: 3,
     actionType: "OBJECT_UPDATE",
     targetObjectId: "note_101",
     payloadJson: JSON.stringify(updatedA),
-    timestamp: t1
+    status: "pending",
+    retryCount: 0,
+    createdAt: t1,
+    updatedAt: t1
   });
   // Update local sequence for A
   await devA.provider.setMetadata("sys_local_sequence", "3");
@@ -125,10 +129,14 @@ async function run() {
   await devB.provider.putObject(updatedB);
   await devB.provider.enqueueSyncEvent({
     eventId: "evt_conf_b",
+    sequenceId: 3,
     actionType: "OBJECT_UPDATE",
     targetObjectId: "note_101",
     payloadJson: JSON.stringify(updatedB),
-    timestamp: t2
+    status: "pending",
+    retryCount: 0,
+    createdAt: t2,
+    updatedAt: t2
   });
   // Update local sequence for B
   await devB.provider.setMetadata("sys_local_sequence", "3");

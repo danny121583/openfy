@@ -84,6 +84,7 @@ export interface OrbitBaseObject {
   updatedAt: number;
   syncSequence: number;
   isDeleted: boolean;
+  deletedAt?: number;
   metadata: Record<string, any>;
   knowledge: OrbitKnowledgeLayer;
 }
@@ -250,10 +251,14 @@ export interface CapabilityRule {
 
 export interface OrbitSyncEvent {
   eventId: string;
+  sequenceId: number;
   actionType: 'OBJECT_CREATE' | 'OBJECT_UPDATE' | 'OBJECT_DELETE';
   targetObjectId: string;
   payloadJson: string;
-  timestamp: number;
+  status: 'pending' | 'sent' | 'acknowledged' | 'failed' | 'conflicted';
+  retryCount: number;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface OrbitStorageProvider {
@@ -273,6 +278,7 @@ export interface OrbitStorageProvider {
   enqueueSyncEvent(event: OrbitSyncEvent): Promise<void> | void;
   getPendingSyncEvents(): Promise<OrbitSyncEvent[]> | OrbitSyncEvent[];
   clearSyncEvents(eventIds: string[]): Promise<void> | void;
+  updateSyncEventStatus(eventId: string, status: OrbitSyncEvent['status'], retryCount?: number): Promise<void> | void;
   close(): Promise<void> | void;
 }
 

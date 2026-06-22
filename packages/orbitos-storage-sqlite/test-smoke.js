@@ -148,10 +148,14 @@ async function run() {
   // Test Sync Queue APIs
   const syncEvent = {
     eventId: "evt_1",
+    sequenceId: 1,
     actionType: "OBJECT_CREATE",
     targetObjectId: "doc_1",
     payloadJson: '{"test":true}',
-    timestamp: Date.now()
+    status: "pending",
+    retryCount: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   };
   await provider.enqueueSyncEvent(syncEvent);
   console.log("✓ Enqueue sync event works");
@@ -166,6 +170,38 @@ async function run() {
   pendingEvents = await provider.getPendingSyncEvents();
   assert.strictEqual(pendingEvents.length, 0);
   console.log("✓ Clear sync events works");
+
+  // Test Sync Event Immutability (Deep Clone & Freeze)
+  const eventObj = {
+    eventId: "imm_1",
+    sequenceId: 10,
+    actionType: "OBJECT_CREATE",
+    targetObjectId: "doc_1",
+    payloadJson: "original",
+    status: "pending",
+    retryCount: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  await provider.enqueueSyncEvent(eventObj);
+  eventObj.payloadJson = "mutated";
+  eventObj.status = "sent";
+
+  let retrievedEvents = await provider.getPendingSyncEvents();
+  let foundEvent = retrievedEvents.find(e => e.eventId === "imm_1");
+  assert.strictEqual(foundEvent.payloadJson, "original");
+  assert.strictEqual(foundEvent.status, "pending");
+  console.log("✓ Sync Event enqueued is immutable (deep cloned & frozen)");
+
+  // Test Update Sync Event Status
+  await provider.updateSyncEventStatus("imm_1", "acknowledged", 2);
+  retrievedEvents = await provider.getPendingSyncEvents();
+  foundEvent = retrievedEvents.find(e => e.eventId === "imm_1");
+  assert.strictEqual(foundEvent.status, "acknowledged");
+  assert.strictEqual(foundEvent.retryCount, 2);
+  console.log("✓ Update Sync Event Status works");
+
+  await provider.clearSyncEvents(["imm_1"]);
 
   await provider.close();
   console.log("✓ Close DB works");
